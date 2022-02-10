@@ -1,0 +1,29 @@
+//@version=5
+indicator("Position", overlay=true)
+
+
+length = input.int(20, "ADR Length", minval=1)
+account = input.int(1000, "Account", minval=0, group="Position")
+maxSize = input.float(10, "Max size %", minval=0, group="Position")
+risk = input.float(0.5, "Risk %", minval=0, group="Position")
+
+
+//ADR
+dayHighs = request.security(syminfo.tickerid, 'D', high)
+dayLows = request.security(syminfo.tickerid, 'D', low)
+ADR = 100 * (ta.sma(dayHighs/dayLows, length) - 1)
+
+// LOD to current range
+currentRange = (close / low - 1) * 100
+
+// Position size
+shares = account*(risk/100)/(close - low)
+if(shares*close > account*(maxSize/100))
+    shares := (account*(maxSize/100))/close
+
+var table data = table.new(position=position.top_right, columns=1,rows=5, border_width=3)
+table.cell(data, 0,0, height=3, text_color=color.new(color.black, 100))
+table.cell(data, 0,1, text="ADR: " + str.tostring(ADR,"0.00") + " %", text_color=color.white, bgcolor=color.new(color.gray, 85))
+table.cell(data, 0,2, text="Range: " + str.tostring(currentRange, "0.00") + "%", text_color=color.white, bgcolor=color.new(color.gray, 85))
+table.cell(data, 0,3, height=1, text_color=color.new(color.black, 100), bgcolor=color.gray)
+table.cell(data, 0,4, text="Position: " + str.tostring(shares, "0"), text_color=color.white, bgcolor=color.new(color.gray, 85))
